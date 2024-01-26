@@ -64,7 +64,7 @@ def select_microphone():
     available_devices = PvRecorder.get_available_devices()
     for index, device in enumerate(available_devices):
         pass
-        print(f"[{index}] {device}")
+        #print(f"[{index}] {device}")
 
     logitech_mic_index = None
     for index, device in enumerate(available_devices):
@@ -94,25 +94,6 @@ def get_speech_as_text():
     transcribed_text_global = transcribe_audio('output.wav')
     #print(f"Debug: In Function, the output is: '{transcribed_text_global}' of type {type(transcribed_text_global)}")  # Debugging line
     return transcribed_text_global
-
-
-# def get_speech_as_text():
-#     device_index = select_microphone()
-#     stop_event = threading.Event()
-#     recording_thread = threading.Thread(target=record_audio, args=(stop_event, device_index))
-#     recording_thread.start()
-#
-#     stop_thread = threading.Thread(target=wait_for_stop_command, args=(stop_event,))
-#     stop_thread.start()
-#
-#     recording_thread.join()
-#     stop_thread.join()
-#
-#     # Transcribe the recorded audio and return the text
-#     # This part assumes you have a function for transcription
-#     transcribed_text_global = transcribe_audio("output.wav")
-#     print(f"Debug: In Function, the output is: '{transcribed_text_global}' of type {type(transcribed_text_global)}")  # Debugging line
-#     return transcribed_text_global
 
 def transcribe_audio(file_path):
     global transcribed_text_global
