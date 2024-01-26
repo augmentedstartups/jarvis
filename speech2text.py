@@ -3,6 +3,8 @@ import wave
 import openai
 import struct
 import threading
+import whisper
+
 
 transcribed_text_global = None
 
@@ -65,7 +67,17 @@ def select_microphone():
     for index, device in enumerate(available_devices):
         pass
         #print(f"[{index}] {device}")
-
+    
+    # macbook_mic_index = None
+    # for index, device in enumerate(available_devices):
+    #     if "MacBook Pro Microphone" in device:
+    #         macbook_mic_index = index
+    #         break
+    #
+    # if macbook_mic_index is None:
+    #     raise Exception("MacBook Pro Microphone not found")
+    #
+    # return macbook_mic_index
     logitech_mic_index = None
     for index, device in enumerate(available_devices):
         if "Webcam C930e Analog Stereo" in device:
@@ -95,7 +107,7 @@ def get_speech_as_text():
     #print(f"Debug: In Function, the output is: '{transcribed_text_global}' of type {type(transcribed_text_global)}")  # Debugging line
     return transcribed_text_global
 
-def transcribe_audio(file_path):
+def transcribe_audio_og(file_path):
     global transcribed_text_global
     client = openai.OpenAI()
     print("Now Transcribing Audio")
@@ -107,6 +119,22 @@ def transcribe_audio(file_path):
         )
     transcribed_text_global = transcript.text
     print(transcript.text)
+    return transcribed_text_global
+
+def transcribe_audio(file_path):
+    global transcribed_text_global
+    print("Now Transcribing Audio")
+    model = whisper.load_model("tiny")
+
+    # Load the audio file
+    audio = whisper.load_audio(file_path)
+    audio = whisper.pad_or_trim(audio)  # Pad or trim the audio to the right length
+
+    # Transcribe the audio
+    result = model.transcribe(audio)
+
+    transcribed_text_global = result["text"]
+    print(result["text"])
     return transcribed_text_global
 
 def main():
