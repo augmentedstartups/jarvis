@@ -59,21 +59,22 @@ def record_audio(stop_event, device_index):
 def wait_for_stop_command(stop_event):
     input("Press Enter to stop recording...")
     stop_event.set()
+
 def select_microphone():
     available_devices = PvRecorder.get_available_devices()
     for index, device in enumerate(available_devices):
         pass
-        #print(f"[{index}] {device}")
+        print(f"[{index}] {device}")
 
-    macbook_mic_index = None
+    logitech_mic_index = None
     for index, device in enumerate(available_devices):
-        if "MacBook Pro Microphone" in device:
-            macbook_mic_index = index
+        if "Webcam C930e Analog Stereo" in device:
+            logitech_mic_index = index
             break
 
-    if macbook_mic_index is None:
-        raise Exception("MacBook Pro Microphone not found")
-    return macbook_mic_index
+    if logitech_mic_index is None:
+        raise Exception("Logitech Webcam C930e Microphone not found")
+    return logitech_mic_index
 def start_recording(device_index):
     stop_event = threading.Event()
     recording_thread = threading.Thread(target=record_audio, args=(stop_event, device_index))
