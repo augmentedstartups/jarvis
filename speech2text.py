@@ -1,3 +1,6 @@
+import RPi.GPIO as GPIO
+# Other necessary imports like PvRecorder, wave, struct, etc.
+
 from pvrecorder import PvRecorder
 import wave
 import openai
@@ -7,8 +10,7 @@ import whisper
 
 
 transcribed_text_global = None
-
-def timed_record_audio(output_file, device_index, record_seconds=10):
+def timed_record_audio_og(output_file, device_index, record_seconds=10):
     frame_length = 512
     recorder = PvRecorder(device_index=device_index, frame_length=frame_length)
     frames = []
@@ -35,6 +37,28 @@ def timed_record_audio(output_file, device_index, record_seconds=10):
         wf.setsampwidth(2)  # Assuming 16-bit audio
         wf.setframerate(recorder.sample_rate)
         wf.writeframes(b''.join(frames))
+
+def timed_record_audio(output_file, device_index, button_pin):
+    frame_length = 512
+    recorder = PvRecorder(device_index=device_index, frame_length=frame_length)
+    frames = []
+
+    try:
+        recorder.start()
+        while GPIO.input(button_pin) == GPIO.HIGH:  # Assuming a pull-up resistor
+            frame = recorder.read()
+            frame_bytes = struct.pack('h' * len(frame), *frame)
+            frames.append(frame_bytes)
+    finally:
+        recorder.stop()
+        recorder.delete()
+
+    with wave.open(output_file, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(recorder.sample_rate)
+        wf.writeframes(b''.join(frames))
+
 
 
 def record_audio(stop_event, device_index):
@@ -67,7 +91,7 @@ def select_microphone():
     for index, device in enumerate(available_devices):
         pass
         #print(f"[{index}] {device}")
-    
+
     # macbook_mic_index = None
     # for index, device in enumerate(available_devices):
     #     if "MacBook Pro Microphone" in device:
@@ -87,15 +111,7 @@ def select_microphone():
     if logitech_mic_index is None:
         raise Exception("Logitech Webcam C930e Microphone not found")
     return logitech_mic_index
-def start_recording(device_index):
-    stop_event = threading.Event()
-    recording_thread = threading.Thread(target=record_audio, args=(stop_event, device_index))
-    recording_thread.start()
 
-    stop_thread = threading.Thread(target=wait_for_stop_command, args=(stop_event,))
-    stop_thread.start()
-
-    return recording_thread, stop_thread
 
 def get_speech_as_text():
     device_index = select_microphone()  # Ensure this function returns the correct microphone index
@@ -107,7 +123,7 @@ def get_speech_as_text():
     #print(f"Debug: In Function, the output is: '{transcribed_text_global}' of type {type(transcribed_text_global)}")  # Debugging line
     return transcribed_text_global
 
-def transcribe_audio_og(file_path):
+def transcribe_audio(file_path):
     global transcribed_text_global
     client = openai.OpenAI()
     print("Now Transcribing Audio")
@@ -121,7 +137,7 @@ def transcribe_audio_og(file_path):
     print(transcript.text)
     return transcribed_text_global
 
-def transcribe_audio(file_path):
+def transcribe_audio_alt(file_path):
     global transcribed_text_global
     print("Now Transcribing Audio")
     model = whisper.load_model("tiny")
